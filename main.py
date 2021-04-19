@@ -58,18 +58,50 @@ class Player():
         self.black_jack_cases = black_jack.black_jack_cases
         self.black_jack_AA_cases = black_jack.black_jack_AA_cases
 
+    def __get_score_dp(self, hands):
+        cur = set([0])
+        nex = set()
+        for card in hands:
+            for x in cur:
+                if card == 'A':
+                    nex.add(x + 1)
+                    nex.add(x + 10)
+                    nex.add(x + 11)
+                elif card in set(['J', 'Q', 'K']):
+                    nex.add(x + 10)
+                else:
+                    nex.add(x + int(card))
+
+            cur = nex
+            nex = set()
+
+        res_small = -1
+        res_big = 999
+        for x in cur:
+            if x <= 21: res_small = max(res_small, x)
+            else: res_big = min(res_big, x)
+        return res_small if res_small != -1 else res_big
 
     def get_score(self):
+        assert len(hands) <= 5
+
+        # Solve stage 1
         if len(self.hands) == 0: return '0'
         if len(self.hands) == 2 and (self.hands[0], self.hands[1]) in self.black_jack_AA_cases: return 'BLACK_JACK_AA'
         if len(self.hands) == 2 and (self.hands[0], self.hands[1]) in self.black_jack_cases: return 'BLACK_JACK'
 
-        score = 0
-        for hand in self.hands:
-            # [TODO]: consider A cases: A = 1, A = 10, A = 11
-            pass
 
+        # Get score
+        hands = [x.split('-')[0] for x in self.hands]
+        score = self.__get_score_dp(hands)
 
+        # Solve stage 2
+        if len(self.hands == 5) and score <= 21: return 'FIVE_ELITES'
+
+        return str(score)
+
+    def draw_card(self):
+        pass
 
     def debug(self):
         print(self.black_jack_cases)
